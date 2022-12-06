@@ -1,0 +1,472 @@
+-----------Таблица illnesses -- Болезни
+CREATE TABLE illnesses
+(
+ id_illness integer PRIMARY KEY,
+ id_disease integer NOT NULL REFERENCES disease_name(id_disease),
+ id_exam_b integer NOT NULL REFERENCES animal_card(id_examination),
+ id_exam_e integer REFERENCES animal_card(id_examination),
+ id_treatment integer REFERENCES treatment(id_treatment)
+ );
+COMMENT ON TABLE illnesses IS 'Болезни';
+COMMENT ON COLUMN illnesses.id_illness IS 'Номер болезни';
+COMMENT ON COLUMN illnesses.id_disease IS 'Номер заболевания';
+COMMENT ON COLUMN illnesses.id_exam_b IS 'Номер начального осмотра';
+COMMENT ON COLUMN illnesses.id_exam_e IS 'Номер конечного осмотра';
+COMMENT ON COLUMN illnesses.id_treatment IS 'Номер лечения';
+ 
+-----------Таблица disease_name -- Названия болезней
+ CREATE TABLE disease_name
+ (
+ id_disease integer PRIMARY KEY,
+ name character(20) NOT NULL UNIQUE,
+ contagiousness boolean NOT NULL
+ );
+COMMENT ON TABLE disease_name IS 'Названия болезней';
+COMMENT ON COLUMN disease_name.id_disease IS 'Номер заболевания';
+COMMENT ON COLUMN disease_name.name IS 'Название заболевания';
+COMMENT ON COLUMN disease_name.contagiousness IS 'Контагиозность';
+
+-----------Таблица treatment -- Лечение
+ CREATE TABLE treatment
+ (
+ id_treatment integer PRIMARY KEY,
+ type_of_tre character(20) NOT NULL UNIQUE
+ );
+COMMENT ON TABLE treatment IS 'Лечение';
+COMMENT ON COLUMN treatment.id_treatment IS 'Номер лечения';
+COMMENT ON COLUMN treatment.type_of_tre IS 'Тип лечения';
+ 
+-----------Таблица supplier -- Поставщик
+ CREATE TABLE supplier
+ (
+ id_supplier integer PRIMARY KEY,
+ name character(20) NOT NULL,
+ addres character(20) NOT NULL,
+ INN character(20) NOT NULL,
+ r/c character(20) NOT NULL
+ );
+COMMENT ON TABLE supplier IS 'Поставщик';
+COMMENT ON COLUMN supplier.id_supplier IS 'Номер поставщика';
+COMMENT ON COLUMN supplier.name IS 'Название';
+COMMENT ON COLUMN supplier.addres IS 'Адрес';
+COMMENT ON COLUMN supplier.INN IS 'ИНН';
+COMMENT ON COLUMN supplier.r/c IS 'Р/с';
+ 
+ -----------Таблица supplies -- Поставки
+ CREATE TABLE supplies
+ (
+ id_supply integer PRIMARY KEY,
+ id_supplier integer NOT NULL REFERENCES supplier(id_supplier),
+ id_contract integer NOT NULL REFERENCES contracts(id_contract),
+ date_of_supply date NOT NULL,
+ cost money NOT NULL
+ );
+COMMENT ON TABLE supplies IS 'Поставки';
+COMMENT ON COLUMN supplies.id_supply IS 'Номер поставки';
+COMMENT ON COLUMN supplies.id_supplier IS 'Номер поставщика';
+COMMENT ON COLUMN supplies.id_contract IS 'Номер заказа';
+COMMENT ON COLUMN supplies.date_of_supply IS 'Дата поставки';
+COMMENT ON COLUMN supplies.cost IS 'Стоимость';
+ 
+  -----------Таблица animal_card -- Карточка животных
+ CREATE TABLE animal_card
+ (
+ id_examination integer PRIMARY KEY,
+ id_animal integer NOT NULL REFERENCES animals(id_animal),
+ date_of_exam date NOT NULL,
+ height real NOT NULL,
+ weight real NOT NULL
+ );
+COMMENT ON TABLE animal_card IS 'Карточка животных';
+COMMENT ON COLUMN animal_card.id_examination IS 'Номер осмотра';
+COMMENT ON COLUMN animal_card.id_animal IS 'Номер животного';
+COMMENT ON COLUMN animal_card.date_of_exam IS 'Дата осмотра';
+COMMENT ON COLUMN animal_card.height IS 'Рост';
+COMMENT ON COLUMN animal_card.weight IS 'Вес';
+ 
+-----------Таблица nutrition -- Рацион
+ CREATE TABLE nutrition
+ (
+ id_nutrition integer REFERENCES nutrition_shedule(id_nutrition),
+ id_animal integer REFERENCES animals(id_animal),
+ date date
+ PRIMARY KEY (id_nutrition, id_animal, date)
+ );
+COMMENT ON TABLE nutrition IS 'Рацион';
+COMMENT ON COLUMN nutrition.id_nutrition IS 'Номер рациона';
+COMMENT ON COLUMN nutrition.id_animal IS 'Номер животного';
+COMMENT ON COLUMN nutrition.date IS 'Дата';
+ 
+ -----------Таблица nutrition_shedule -- График рациона
+ CREATE TABLE nutrition_shedule
+ (
+ id_nutrition integer PRIMARY KEY,
+ id_feed integer NOT NULL,
+ id_food integer NOT NULL REFERENCES food(id_food),
+ portion real NOT NULL CHECK(portion > 0),
+ time_of_feed time without time zone NOT NULL
+ );
+COMMENT ON TABLE nutrition_shedule IS 'График рациона';
+COMMENT ON COLUMN nutrition_shedule.id_nutrition IS 'Номер рациона';
+COMMENT ON COLUMN nutrition_shedule.id_feed IS 'Номер кормления';
+COMMENT ON COLUMN nutrition_shedule.id_food IS 'Номер корма';
+COMMENT ON COLUMN nutrition_shedule.portion IS 'Количество корма';
+COMMENT ON COLUMN nutrition_shedule.time_of_feed IS 'Время кормления';
+ALERT TABLE ONLY nutrition_shedule ADD CONSTRAINT positive_amm_of_food CHECK (ammount_of_food_to_eat > 0);
+ 
+ -----------Таблица food -- Корм
+ CREATE TABLE food
+ (
+ id_food integer PRIMARY KEY,
+ name character(20) NOT NULL UNIQUE
+ );
+COMMENT ON TABLE food IS 'Корм';
+COMMENT ON COLUMN food.id_food IS 'Номер корма';
+COMMENT ON COLUMN food.name IS 'Наименование';
+ 
+ -----------Таблица contracts -- Заказы
+ CREATE TABLE contracts
+ (
+ id_contract integer PRIMARY KEY,
+ id_food integer NOT NULL REFERENCES food(id_food),
+ ammount_of_food real NOT NULL,
+ date_of_contract date NOT NULL
+ );
+COMMENT ON TABLE contracts IS 'Заказы';
+COMMENT ON COLUMN contracts.id_contract IS 'Номер заказа';
+COMMENT ON COLUMN contracts.id_food IS 'Номер корма';
+COMMENT ON COLUMN contracts.ammount_of_food IS 'Количество корма';
+COMMENT ON COLUMN contracts.date_of_contract IS 'Дата заказа';
+ 
+ -----------Таблица cage -- Клетки
+ CREATE TABLE cage
+ (
+ id_cage integer PRIMARY KEY,
+ warm boolean NOT NULL
+ );
+COMMENT ON TABLE cage IS 'Клетки';
+COMMENT ON COLUMN cage.id_cage IS 'Номер клетки';
+COMMENT ON COLUMN cage.warm IS 'Теплая';
+ 
+ -----------Таблица cage_settlement -- Заселения в клетку
+ CREATE TABLE cage_settlement
+ (
+ id_animal integer REFERENCES animals(id_animal),
+ id_cage integer NOT NULL REFERENCES cage(id_cage),
+ date_of_settlement date,
+ date_of_eviction date CHECK(date_of_eviction > date_of_settlement)
+ PRIMARY KEY(id_animal, date_of_settlement)
+ );
+COMMENT ON TABLE cage_settlement IS 'Заселения в клетку';
+COMMENT ON COLUMN cage_settlement.id_animal IS 'Номер животного';
+COMMENT ON COLUMN cage_settlement.id_cage IS 'Номер клетки';
+COMMENT ON COLUMN cage_settlement.date_of_settlement IS 'Дата заселения';
+COMMENT ON COLUMN cage_settlement.date_of_eviction IS 'Дата выселения';
+ALERT TABLE ONLY cage_settlement ADD CONSTRAINT date_ch CHECK (date_of_eviction > date_of_settlement);
+ 
+ -----------Таблица animals -- Животные
+ CREATE TABLE animals
+ (
+ id_animal integer PRIMARY KEY,
+ id_species integer NOT NULL REFERENCES spieces(id_species),
+ nickname character(20),
+ thermal_loving boolean NOT NULL,
+ sex character(1) NOT NULL,
+ id_mother integer NOT NULL REFERENCES animals(id_animal),
+ id_father integer NOT NULL REFERENCES animals(id_animal)
+ );
+COMMENT ON TABLE animals IS 'Животные';
+COMMENT ON COLUMN animals.id_animal IS 'Номер животного';
+COMMENT ON COLUMN animals.id_species IS 'Номер вида';
+COMMENT ON COLUMN animals.nickname IS 'Кличка';
+COMMENT ON COLUMN animals.thermal_loving IS 'Теплолюбивость';
+COMMENT ON COLUMN animals.sex IS 'Пол';
+COMMENT ON COLUMN animals.id_mother IS 'Номер матери';
+COMMENT ON COLUMN animals.id_father IS 'Номер отца';
+ 
+ -----------Таблица compatibility -- Совместимость
+ CREATE TABLE compatibility
+ (
+ id_who integer REFERENCES spieces(id_species),
+ id_with_who integer REFERENCES spieces(id_species)
+ PRIMARY KEY (id_who, id_with_who)
+ );
+COMMENT ON TABLE compatibility IS 'Совместимость';
+COMMENT ON COLUMN compatibility.id_who IS 'Номер кто';
+COMMENT ON COLUMN compatibility.id_with_who IS 'Номер с кем';
+ 
+ -----------Таблица spieces -- Вид
+ CREATE TABLE spieces
+ (
+ id_spieces integer PRIMARY KEY,
+ name character(20) NOT NULL UNIQUE,
+ type_of_nutrition character(20)
+ );
+COMMENT ON TABLE spieces IS 'Вид';
+COMMENT ON COLUMN spieces.id_spieces IS 'Номер вида';
+COMMENT ON COLUMN spieces.name IS 'Название';
+COMMENT ON COLUMN spieces.type_of_nutrition IS 'Тип питания';
+ 
+ -----------Таблица vaccination -- Вакцинация
+ CREATE TABLE vaccination
+ (
+ id_animal integer REFERENCES animals(id_animal),
+ id_vaccine integer REFERENCES vaccine(id_vaccine),
+ date date,
+ dosage integer NOT NULL CHECK(dosage > 0)
+ PRIMARY KEY(id_animal, id_vaccine, date)
+ );
+COMMENT ON TABLE vaccination IS 'Вакцинация';
+COMMENT ON COLUMN vaccination.id_animal IS 'Номер животного';
+COMMENT ON COLUMN vaccination.id_vaccine IS 'Номер прививки';
+COMMENT ON COLUMN vaccination.date IS 'Дата';
+COMMENT ON COLUMN vaccination.dosage IS 'Доза';
+ALERT TABLE ONLY vaccination ADD CONSTRAINT positive_dosage CHECK (dosage > 0);
+
+ -----------Таблица vaccine -- Вакцина
+ CREATE TABLE vaccine
+ (
+ id_vaccine integer PRIMARY KEY,
+ name character(20) NOT NULL UNIQUE
+ );
+COMMENT ON TABLE vaccine IS 'Вакцина';
+COMMENT ON COLUMN vaccine.id_vaccine IS 'Номер вакцины';
+COMMENT ON COLUMN vaccine.name IS 'Название';
+ 
+ -----------Таблица emp_ani_relations -- Отношение служащих и животных
+ CREATE TABLE emp_ani_relations
+ (
+ id_animal integer REFERENCES animals(id_animal),
+ id_employee integer REFERENCES employees(id_employee),
+ date_begin date NOT NULL,
+ date_end date CHECK(date_end > date_begin)
+ PRIMARY KEY(id_animal, id_employee)
+ );
+COMMENT ON TABLE emp_ani_relations IS 'Отношение служащих и животных';
+COMMENT ON COLUMN emp_ani_relations.id_animal IS 'Номер животного';
+COMMENT ON COLUMN emp_ani_relations.id_employee IS 'Номер служащего';
+COMMENT ON COLUMN emp_ani_relations.date_begin IS 'Дата назначения';
+COMMENT ON COLUMN emp_ani_relations.date_end IS 'Дата окончания';
+ALERT TABLE ONLY emp_ani_relations ADD CONSTRAINT date_check CHECK (date_end > date_begin);
+ 
+ -----------Таблица arrivals -- Прибытия
+ CREATE TABLE arrivals
+ (
+ id_arrival integer PRIMARY KEY,
+ id_animal integer NOT NULL	REFERENCES animals(id_animal),
+ date_of_arrival date NOT NULL,
+ id_zoo integer REFERENCES zoos(id zoo)
+ );
+COMMENT ON TABLE arrivals IS 'Прибытия';
+COMMENT ON COLUMN arrivals.id_arrival IS 'Номер прибытия';
+COMMENT ON COLUMN arrivals.id_animal IS 'Номер животного';
+COMMENT ON COLUMN arrivals.date_of_arrival IS 'Дата прибытия';
+COMMENT ON COLUMN arrivals.id_zoo IS 'Номер зоопарка';
+ 
+ -----------Таблица exchange -- Обмены
+ CREATE TABLE exchange
+ (
+ id_arrival integer REFERENCES arrivals(id_arrival),
+ id_departure integer REFERENCES departures(id_departure)
+ PRIMARY KEY(id_arrival, id_departure)
+ );
+COMMENT ON TABLE exchange IS 'Обмены';
+COMMENT ON COLUMN exchange.id_arrival IS 'Номер прибытия';
+COMMENT ON COLUMN exchange.id_departure IS 'Номер убытия';
+ 
+ -----------Таблица departures -- Убытия
+ CREATE TABLE departures
+ (
+ id_departure integer PRIMARY KEY,
+ id_animal integer NOT NULL	REFERENCES animals(id_animal),
+ date_of_departure date NOT NULL,
+ id_zoo integer REFERENCES zoos(id zoo)
+ );
+COMMENT ON TABLE departures IS 'Убытия';
+COMMENT ON COLUMN departures.id_departure IS 'Номер убытия';
+COMMENT ON COLUMN departures.id_animal IS 'Номер животного';
+COMMENT ON COLUMN departures.date_of_departure IS 'Дата убытия';
+COMMENT ON COLUMN departures.id_zoo IS 'Номер зоопарка';
+ 
+ -----------Таблица zoos -- Зоопарки
+ CREATE TABLE zoos
+ (
+ id_zoo integer PRIMARY KEY,
+ name character(20) NOT NULL,
+ city character(20) NOT NULL
+ );
+COMMENT ON TABLE zoos IS 'Зоопарки';
+COMMENT ON COLUMN zoos.id_zoo IS 'Номер зоопарка';
+COMMENT ON COLUMN zoos.name IS 'Название';
+COMMENT ON COLUMN zoos.city IS 'Город';
+ 
+ -----------Таблица employees -- Служащие
+ CREATE TABLE employees
+ (
+ id_employee integer PRIMARY KEY,
+ surname character(20) NOT NULL,
+ name character(20) NOT NULL,
+ patronymic character(20),
+ date_of_birth date NOT NULL,
+ sex character(1) NOT NULL,
+ date_of_employment date NOT NULL,
+ date_of_dismissal date CHECK(date_of_dismissal > date_of_employment),
+ salary money NOT NULL,
+ id_post integer NOT NULL REFERENCES post(id_post)
+ );
+COMMENT ON TABLE employees IS 'Служащие';
+COMMENT ON COLUMN employees.id_employee IS 'Номер служащего';
+COMMENT ON COLUMN employees.surname IS 'Фамилия';
+COMMENT ON COLUMN employees.name IS 'Имя';
+COMMENT ON COLUMN employees.patronymic IS 'Отчество';
+COMMENT ON COLUMN employees.date_of_birth IS 'Дата рождения';
+COMMENT ON COLUMN employees.sex IS 'Пол';
+COMMENT ON COLUMN employees.date_of_employment IS 'Дата приема на работу';
+COMMENT ON COLUMN employees.date_of_dismissal IS 'Дата увольнения';
+COMMENT ON COLUMN employees.salary IS 'Заработная плата';
+COMMENT ON COLUMN employees.id_post IS 'Номер должности';
+ALERT TABLE ONLY employees ADD CONSTRAINT date_che CHECK (date_of_dismissal > date_of_employment);
+ 
+ -----------Таблица post -- Должность
+ CREATE TABLE post
+ (
+ id_post integer PRIMARY KEY,
+ name character(20) NOT NULL UNIQUE,
+ cage_access boolean NOT NULL
+ );
+COMMENT ON TABLE post IS 'Должность';
+COMMENT ON COLUMN post.id_post IS 'Номер должности';
+COMMENT ON COLUMN post.name IS 'Наименование';
+COMMENT ON COLUMN post.cage_access IS 'Доступ в клетку';
+
+ -----------Таблица sick_leave -- Больничные
+ CREATE TABLE sick_leave 
+ (
+ id_sick integer PRIMARY KEY,
+ id_employee integer NOT NULL REFERENCES employees(id_employee),
+ date_b date NOT NULL,
+ date_e date CHECK(date_e > date_b)
+ );
+COMMENT ON TABLE sick_leave IS 'Больничные';
+COMMENT ON COLUMN sick_leave.id_sick IS 'Номер больничного';
+COMMENT ON COLUMN sick_leave.id_employee IS 'Номер служащего';
+COMMENT ON COLUMN sick_leave.date_b IS 'Дата начала';
+COMMENT ON COLUMN sick_leave.date_e IS 'Дата конца';
+ALERT TABLE ONLY sick_leave ADD CONSTRAINT date_chec CHECK (date_e > date_b);
+
+ -----------Таблица vacation -- Отпуска
+ CREATE TABLE vacation
+ (
+ id_vacation integer PRIMARY KEY,
+ id_employee integer NOT NULL REFERENCES employees(id_employee),
+ date_b date NOT NULL,
+ date_e date CHECK(date_e > date_b)
+ );
+COMMENT ON TABLE vacation IS 'Отпуска';
+COMMENT ON COLUMN vacation.id_vacation IS 'Номер отпуска';
+COMMENT ON COLUMN vacation.id_employee IS 'Номер служащего';
+COMMENT ON COLUMN vacation.date_b IS 'Дата начала';
+COMMENT ON COLUMN vacation.date_e IS 'Дата конца';
+ALERT TABLE ONLY vacation ADD CONSTRAINT date_chec CHECK (date_e > date_b);
+ 
+ -----------Таблица veterinarian -- Ветеринары
+ CREATE TABLE veterinarian 
+ (
+ id_employee integer PRIMARY KEY REFERENCES employees(id_employee),
+ qualification integer NOT NULL,
+ area character(20) NOT NULL,
+ animal_spieces character(20) NOT NULL
+ );
+COMMENT ON TABLE veterinarian IS 'Ветеринары';
+COMMENT ON COLUMN veterinarian.id_employee IS 'Номер служащего';
+COMMENT ON COLUMN veterinarian.qualification IS 'Квалификация';
+COMMENT ON COLUMN veterinarian.area IS 'Направление';
+COMMENT ON COLUMN veterinarian.animal_spieces IS 'Вид животных';
+ 
+ -----------Таблица janitor -- Уборщики
+ CREATE TABLE janitor
+ (
+ id_employee integer PRIMARY KEY REFERENCES employees(id_employee),
+ hardworing boolean NOT NULL
+ );
+COMMENT ON TABLE janitor IS 'Уборщики';
+COMMENT ON COLUMN janitor.id_employee IS 'Номер служащего';
+COMMENT ON COLUMN janitor.hardworing IS 'Трудолюбивость';
+ 
+ -----------Таблица trainer -- Дрессировщики
+ CREATE TABLE trainer
+ (
+ id_employee integer PRIMARY KEY REFERENCES employees(id_employee),
+ qualification integer NOT NULL,
+ animal_spieces character(20) NOT NULL,
+ type_of_training character(20) NOT NULL
+ );
+COMMENT ON TABLE trainer IS 'Дрессировщики';
+COMMENT ON COLUMN trainer.id_employee IS 'Номер служащего';
+COMMENT ON COLUMN trainer.qualification IS 'Квалификация';
+COMMENT ON COLUMN trainer.animal_spieces IS 'Вид животных';
+COMMENT ON COLUMN trainer.type_of_training IS 'Тип дрессировки';
+ 
+ -----------Таблица builder_repairman -- Строители-ремонтники
+ CREATE TABLE builder_repairman
+ (
+ id_employee integer PRIMARY KEY REFERENCES employees(id_employee),
+ grade integer NOT NULL,
+ area character(20) NOT NULL
+ );
+COMMENT ON TABLE builder_repairman IS 'Строители-ремонтники';
+COMMENT ON COLUMN builder_repairman.id_employee IS 'Номер служащего';
+COMMENT ON COLUMN builder_repairman.grade IS 'Разряд';
+COMMENT ON COLUMN builder_repairman.area IS 'Направление';
+ 
+ -----------Таблица administrator -- Работники администрации
+ CREATE TABLE administrator 
+ (
+ id_employee integer PRIMARY KEY REFERENCES employees(id_employee),
+ area character(20) NOT NULL,
+ rating real NOT NULL
+ );
+COMMENT ON TABLE administrator IS 'Работники администрации';
+COMMENT ON COLUMN administrator.id_employee IS 'Номер служащего';
+COMMENT ON COLUMN administrator.area IS 'Направление';
+COMMENT ON COLUMN administrator.rating IS 'Рейтинг';
+ 
+ -----------Таблица zoo_engineer -- Зооинженеры
+ CREATE TABLE zoo_engineer 
+ (
+ id_employee integer PRIMARY KEY REFERENCES employees(id_employee),
+ qualification character(20) NOT NULL,
+ specialization real NOT NULL
+ );
+COMMENT ON TABLE zoo_engineer IS 'Зооинженеры';
+COMMENT ON COLUMN zoo_engineer.id_employee IS 'Номер служащего';
+COMMENT ON COLUMN zoo_engineer.qualification IS 'Квалификация';
+COMMENT ON COLUMN zoo_engineer.specialization IS 'Специализация';
+
+ -----------Таблица vacancy -- Вакансии
+ CREATE TABLE vacancy
+ (
+ id_vacancy integer PRIMARY KEY,
+ id_post integer NOT NULL REFERENCES post(id_post),
+ date_b date NOT NULL,
+ id_employee integer REFERENCES employees(id_employee)
+ );
+COMMENT ON TABLE vacancy IS 'Вакансии';
+COMMENT ON COLUMN vacancy.id_vacancy IS 'Номер вакансии';
+COMMENT ON COLUMN vacancy.id_post IS 'Номер должности';
+COMMENT ON COLUMN vacancy.date_b IS 'Дата выставления';
+COMMENT ON COLUMN vacancy.id_employee IS 'Номер служащего';
+
+ -----------Таблица request -- Заявки
+ CREATE TABLE request
+ (
+ id_request integer PRIMARY KEY,
+ id_vacancy integer NOT NULL REFERENCES vacancy(id_vacancy),
+ date_b date NOT NULL,
+ seen boolean NOT NULL
+ );
+COMMENT ON TABLE request IS 'Заявки';
+COMMENT ON COLUMN request.id_request IS 'Номер заявки';
+COMMENT ON COLUMN request.id_vacancy IS 'Номер служащего';
+COMMENT ON COLUMN request.date_b IS 'Дата заявки';
+COMMENT ON COLUMN request.seen IS 'Рассмотрена';
