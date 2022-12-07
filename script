@@ -1,0 +1,434 @@
+-----------Таблица disease_name -- Название болезни
+ CREATE TABLE disease_name
+ (
+ ID bigserial PRIMARY KEY,
+ name varchar(256) NOT NULL UNIQUE,
+ contagiousness boolean NOT NULL DEFAULT FALSE
+ );
+COMMENT ON TABLE disease_name IS 'Название болезни';
+COMMENT ON COLUMN disease_name.ID IS 'Номер заболевания';
+COMMENT ON COLUMN disease_name.name IS 'Название заболевания';
+COMMENT ON COLUMN disease_name.contagiousness IS 'Контагиозность';
+
+-----------Таблица supplier -- Поставщик
+ CREATE TABLE supplier
+ (
+ ID bigserial PRIMARY KEY,
+ name varchar(256) NOT NULL,
+ addres varchar(128) NOT NULL,
+ INN varchar(128) NOT NULL,
+ r_c varchar(128) NOT NULL
+ );
+COMMENT ON TABLE supplier IS 'Поставщик';
+COMMENT ON COLUMN supplier.ID IS 'Номер поставщика';
+COMMENT ON COLUMN supplier.name IS 'Название';
+COMMENT ON COLUMN supplier.addres IS 'Адрес';
+COMMENT ON COLUMN supplier.INN IS 'ИНН';
+COMMENT ON COLUMN supplier.r_c IS 'Р/с';
+
+ -----------Таблица food -- Корм
+ CREATE TABLE food
+ (
+ ID bigserial PRIMARY KEY,
+ name varchar(256) NOT NULL UNIQUE
+ );
+COMMENT ON TABLE food IS 'Корм';
+COMMENT ON COLUMN food.ID IS 'Номер корма';
+COMMENT ON COLUMN food.name IS 'Наименование';
+
+ -----------Таблица cage -- Клетка
+ CREATE TABLE cage
+ (
+ ID bigserial PRIMARY KEY,
+ warm boolean NOT NULL DEFAULT FALSE
+ );
+COMMENT ON TABLE cage IS 'Клетка';
+COMMENT ON COLUMN cage.ID IS 'Номер клетки';
+COMMENT ON COLUMN cage.warm IS 'Теплая';
+
+ -----------Таблица kind_of_animal -- Вид
+ CREATE TABLE kind_of_animal
+ (
+ ID bigserial PRIMARY KEY,
+ name varchar(256) NOT NULL UNIQUE,
+ type_of_diet varchar(256)
+ );
+COMMENT ON TABLE kind_of_animal IS 'Вид';
+COMMENT ON COLUMN kind_of_animal.ID IS 'Номер вида';
+COMMENT ON COLUMN kind_of_animal.name IS 'Название';
+COMMENT ON COLUMN kind_of_animal.type_of_diet IS 'Тип питания';
+
+ -----------Таблица vaccine -- Вакцина
+ CREATE TABLE vaccine
+ (
+ ID bigserial PRIMARY KEY,
+ name varchar(256) NOT NULL UNIQUE
+ );
+COMMENT ON TABLE vaccine IS 'Вакцина';
+COMMENT ON COLUMN vaccine.ID IS 'Номер вакцины';
+COMMENT ON COLUMN vaccine.name IS 'Название';
+
+ -----------Таблица zoo -- Зоопарк
+ CREATE TABLE zoo
+ (
+ ID bigserial PRIMARY KEY,
+ name varchar(256) NOT NULL,
+ city varchar(128) NOT NULL
+ );
+COMMENT ON TABLE zoo IS 'Зоопарк';
+COMMENT ON COLUMN zoo.ID IS 'Номер зоопарка';
+COMMENT ON COLUMN zoo.name IS 'Название';
+COMMENT ON COLUMN zoo.city IS 'Город';
+
+ -----------Таблица post -- Должность
+ CREATE TABLE post
+ (
+ ID bigserial PRIMARY KEY,
+ name varchar(256) NOT NULL UNIQUE,
+ cage_access boolean NOT NULL DEFAULT FALSE
+ );
+COMMENT ON TABLE post IS 'Должность';
+COMMENT ON COLUMN post.ID IS 'Номер должности';
+COMMENT ON COLUMN post.name IS 'Наименование';
+COMMENT ON COLUMN post.cage_access IS 'Доступ в клетку';
+
+ -----------Таблица person -- Человек
+ CREATE TABLE person
+ (
+ ID bigserial PRIMARY KEY,
+ surname varchar(128) NOT NULL,
+ name varchar(128) NOT NULL,
+ patronymic varchar(128),
+ date_of_birth date NOT NULL,
+ sex character(1) NOT NULL CHECK (sex = 'м' OR sex = 'ж')
+ );
+COMMENT ON TABLE person IS 'Человек';
+COMMENT ON COLUMN person.ID IS 'Номер человека';
+COMMENT ON COLUMN person.surName IS 'Фамилия';
+COMMENT ON COLUMN person.name IS 'Имя';
+COMMENT ON COLUMN person.patronymic IS 'Отчество';
+COMMENT ON COLUMN person.date_of_birth IS 'Дата рождения';
+COMMENT ON COLUMN person.sex IS 'Пол';
+
+ -----------Таблица animal -- Животное
+ CREATE TABLE animal
+ (
+ ID bigserial PRIMARY KEY,
+ kind_of_animal_id bigserial NOT NULL REFERENCES kind_of_animal(ID),
+ nickname varchar(128),
+ thermal_loving boolean NOT NULL,
+ sex character(1) NOT NULL CHECK (sex = 'м' OR sex = 'ж'),
+ mother_id bigserial NOT NULL REFERENCES animal(ID),
+ father_id bigserial NOT NULL REFERENCES animal(ID)
+ );
+COMMENT ON TABLE animal IS 'Животное';
+COMMENT ON COLUMN animal.animal_id IS 'Номер животного';
+COMMENT ON COLUMN animal.kind_of_animal_id IS 'Номер вида';
+COMMENT ON COLUMN animal.nickname IS 'Кличка';
+COMMENT ON COLUMN animal.thermal_loving IS 'Теплолюбивость';
+COMMENT ON COLUMN animal.sex IS 'Пол';
+COMMENT ON COLUMN animal.mother_id IS 'Номер матери';
+COMMENT ON COLUMN animal.father_id IS 'Номер отца';
+
+  -----------Таблица animal_card -- Карточка животного
+ CREATE TABLE animal_card
+ (
+ ID bigserial PRIMARY KEY,
+ animal_id bigserial NOT NULL REFERENCES animal(ID),
+ date_of_exam date NOT NULL,
+ height real NOT NULL,
+ weight real NOT NULL
+ );
+COMMENT ON TABLE animal_card IS 'Карточка животного';
+COMMENT ON COLUMN animal_card.ID IS 'Номер осмотра';
+COMMENT ON COLUMN animal_card.animal_id IS 'Номер животного';
+COMMENT ON COLUMN animal_card.date_of_exam IS 'Дата осмотра';
+COMMENT ON COLUMN animal_card.height IS 'Рост';
+COMMENT ON COLUMN animal_card.weight IS 'Вес';
+
+-----------Таблица treatment -- Лечение
+ CREATE TABLE treatment
+ (
+ ID bigserial PRIMARY KEY,
+ name varchar(256) NOT NULL UNIQUE
+ );
+COMMENT ON TABLE treatment IS 'Лечение';
+COMMENT ON COLUMN treatment.ID IS 'Номер лечения';
+COMMENT ON COLUMN treatment.name IS 'Название';
+
+-----------Таблица illness -- Болезнь
+CREATE TABLE illness
+(
+ ID bigserial PRIMARY KEY,
+ disease_id bigserial NOT NULL REFERENCES disease_name(ID),
+ first_exam_id bigserial NOT NULL REFERENCES animal_card(ID),
+ last_exam_id bigserial REFERENCES animal_card(ID),
+ treatment_id bigserial REFERENCES treatment(ID)
+ );
+COMMENT ON TABLE illness IS 'Болезнь';
+COMMENT ON COLUMN illness.ID IS 'Номер болезни';
+COMMENT ON COLUMN illness.disease_id IS 'Номер заболевания';
+COMMENT ON COLUMN illness.first_exam_id IS 'Номер начального осмотра';
+COMMENT ON COLUMN illness.last_exam_id IS 'Номер конечного осмотра';
+COMMENT ON COLUMN illness.treatment_id IS 'Номер лечения';
+
+ -----------Таблица diet_shedule -- График рациона
+ CREATE TABLE diet_shedule
+ (
+ ID bigserial PRIMARY KEY,
+ feed_id bigserial NOT NULL,
+ food_id bigserial NOT NULL REFERENCES food(ID),
+ portion real NOT NULL CHECK(portion > 0),
+ time_of_feed time without time zone NOT NULL
+ );
+COMMENT ON TABLE diet_shedule IS 'График рациона';
+COMMENT ON COLUMN diet_shedule.ID IS 'Номер рациона';
+COMMENT ON COLUMN diet_shedule.feed_id IS 'Номер кормления';
+COMMENT ON COLUMN diet_shedule.food_id IS 'Номер корма';
+COMMENT ON COLUMN diet_shedule.portion IS 'Количество корма';
+COMMENT ON COLUMN diet_shedule.time_of_feed IS 'Время кормления';
+
+ -----------Таблица contract -- Заказ
+ CREATE TABLE contract
+ (
+ ID bigserial PRIMARY KEY,
+ food_id bigserial NOT NULL REFERENCES food(ID),
+ ammount_of_Food real NOT NULL,
+ date_of_contract date NOT NULL
+ );
+COMMENT ON TABLE contract IS 'Заказ';
+COMMENT ON COLUMN contract.ID IS 'Номер заказа';
+COMMENT ON COLUMN contract.food_id IS 'Номер корма';
+COMMENT ON COLUMN contract.ammount_of_Food IS 'Количество корма';
+COMMENT ON COLUMN contract.date_of_contract IS 'Дата заказа';
+ 
+ -----------Таблица supply -- Поставка
+ CREATE TABLE supply
+ (
+ ID bigserial PRIMARY KEY,
+ supplier_id bigserial NOT NULL REFERENCES supplier(ID),
+ contract_id bigserial NOT NULL REFERENCES contract(ID),
+ date_of_supply date NOT NULL,
+ cost money NOT NULL
+ );
+COMMENT ON TABLE supply IS 'Поставка';
+COMMENT ON COLUMN supply.ID IS 'Номер поставки';
+COMMENT ON COLUMN supply.supplier_id IS 'Номер поставщика';
+COMMENT ON COLUMN supply.contract_id IS 'Номер заказа';
+COMMENT ON COLUMN supply.date_of_supply IS 'Дата поставки';
+COMMENT ON COLUMN supply.cost IS 'Стоимость';
+
+-----------Таблица diet -- Рацион
+ CREATE TABLE diet
+ (
+ diet_id bigserial REFERENCES diet_shedule(ID),
+ animal_id bigserial REFERENCES animal(ID),
+ date date
+ PRIMARY KEY (diet_id, animal_id, date)
+ );
+COMMENT ON TABLE diet IS 'Рацион';
+COMMENT ON COLUMN diet.diet_id IS 'Номер рациона';
+COMMENT ON COLUMN diet.animal_id IS 'Номер животного';
+COMMENT ON COLUMN diet.date IS 'Дата';
+ 
+ -----------Таблица cage_settlement -- Заселение в клетку
+ CREATE TABLE cage_settlement
+ (
+ animal_id bigserial REFERENCES animal(ID),
+ cage_id bigserial NOT NULL REFERENCES cage(ID),
+ date_of_settlement date,
+ date_of_eviction date CHECK(date_of_eviction > date_of_settlement)
+ PRIMARY KEY(animal_id, date_of_settlement)
+ );
+COMMENT ON TABLE cage_settlement IS 'Заселение в клетку';
+COMMENT ON COLUMN cage_settlement.animal_id IS 'Номер животного';
+COMMENT ON COLUMN cage_settlement.cage_id IS 'Номер клетки';
+COMMENT ON COLUMN cage_settlement.date_of_settlement IS 'Дата заселения';
+COMMENT ON COLUMN cage_settlement.date_of_eviction IS 'Дата выселения';
+ 
+ -----------Таблица compatibility -- Совместимость
+ CREATE TABLE compatibility
+ (
+ who_id bigserial REFERENCES kind_of_animal(ID),
+ with_who_id bigserial REFERENCES kind_of_animal(ID)
+ PRIMARY KEY (who_id, with_who_id)
+ );
+COMMENT ON TABLE compatibility IS 'Совместимость';
+COMMENT ON COLUMN compatibility.who_id IS 'Номер кто';
+COMMENT ON COLUMN compatibility.with_who_id IS 'Номер с кем';
+ 
+ -----------Таблица vaccination -- Вакцинация
+ CREATE TABLE vaccination
+ (
+ animal_id bigserial REFERENCES animal(ID),
+ vaccine_id bigserial REFERENCES vaccine(ID),
+ date date,
+ dosage bigserial NOT NULL CHECK(dosage > 0)
+ PRIMARY KEY(animal_id, vaccine_id, date)
+ );
+COMMENT ON TABLE vaccination IS 'Вакцинация';
+COMMENT ON COLUMN vaccination.animal_id IS 'Номер животного';
+COMMENT ON COLUMN vaccination.vaccine_id IS 'Номер прививки';
+COMMENT ON COLUMN vaccination.date IS 'Дата';
+COMMENT ON COLUMN vaccination.dosage IS 'Доза';
+ 
+ -----------Таблица arrival -- Прибытие
+ CREATE TABLE arrival
+ (
+ ID bigserial PRIMARY KEY,
+ animal_id bigserial NOT NULL	REFERENCES animal(ID),
+ date_of_arrival date NOT NULL,
+ zoo_id bigserial REFERENCES zoo(ID)
+ );
+COMMENT ON TABLE arrival IS 'Прибытие';
+COMMENT ON COLUMN arrival.ID IS 'Номер прибытия';
+COMMENT ON COLUMN arrival.animal_id IS 'Номер животного';
+COMMENT ON COLUMN arrival.date_of_arrival IS 'Дата прибытия';
+COMMENT ON COLUMN arrival.zoo_id IS 'Номер зоопарка';
+ 
+ -----------Таблица departure -- Убытие
+ CREATE TABLE departure
+ (
+ ID bigserial PRIMARY KEY,
+ animal_id bigserial NOT NULL	REFERENCES animal(ID),
+ date_of_departure date NOT NULL,
+ zoo_id bigserial REFERENCES zoo(ID)
+ );
+COMMENT ON TABLE departure IS 'Убытие';
+COMMENT ON COLUMN departure.ID IS 'Номер убытия';
+COMMENT ON COLUMN departure.animal_id IS 'Номер животного';
+COMMENT ON COLUMN departure.date_of_departure IS 'Дата убытия';
+COMMENT ON COLUMN departure.zoo_id IS 'Номер зоопарка';
+ 
+ -----------Таблица exchange -- Обмен
+ CREATE TABLE exchange
+ (
+ arrival_id bigserial REFERENCES arrival(ID),
+ departure_id bigserial REFERENCES departure(ID)
+ PRIMARY KEY(arrival_id, departure_id)
+ );
+COMMENT ON TABLE exchange IS 'Обмен';
+COMMENT ON COLUMN exchange.arrival_id IS 'Номер прибытия';
+COMMENT ON COLUMN exchange.departure_id IS 'Номер убытия';
+ 
+ -----------Таблица employee_animal_relation -- Отношение служащего и животного
+ CREATE TABLE employee_animal_relation
+ (
+ animal_id bigserial REFERENCES animal(ID),
+ employee_id bigserial REFERENCES employment(ID),
+ date_begin date NOT NULL,
+ date_end date CHECK(date_end > date_begin)
+ PRIMARY KEY(animal_id, employee_id)
+ );
+COMMENT ON TABLE employee_animal_relation IS 'Отношение служащего и животного';
+COMMENT ON COLUMN employee_animal_relation.animal_id IS 'Номер животного';
+COMMENT ON COLUMN employee_animal_relation.employee_id IS 'Номер служащего';
+COMMENT ON COLUMN employee_animal_relation.date_begin IS 'Дата назначения';
+COMMENT ON COLUMN employee_animal_relation.date_end IS 'Дата окончания';
+ 
+ -----------Таблица employment -- Трудоустройство
+ CREATE TABLE employment
+ (
+ ID bigserial PRIMARY KEY,
+ person_id bigserial NOT NULL REFERENCES person(ID),
+ date_of_employment date NOT NULL,
+ date_of_dismissal date CHECK(date_of_dismissal > date_of_employment),
+ salary money NOT NULL,
+ post_id bigserial NOT NULL REFERENCES post(ID)
+ );
+COMMENT ON TABLE employment IS 'Трудоустройство';
+COMMENT ON COLUMN employment.ID IS 'Номер Трудоустройство';
+COMMENT ON COLUMN employment.date_of_employment IS 'Дата приема на работу';
+COMMENT ON COLUMN employment.date_of_dismissal IS 'Дата увольнения';
+COMMENT ON COLUMN employment.salary IS 'Заработная плата';
+COMMENT ON COLUMN employment.post_id IS 'Номер должности';
+ 
+ -----------Таблица absence -- Отсутствие
+ CREATE TABLE absence 
+ (
+ ID bigserial PRIMARY KEY,
+ employee_id bigserial NOT NULL REFERENCES employment(ID),
+ name varchar(256) NOT NULL UNIQUE,
+ date_b date NOT NULL,
+ date_e date CHECK(date_e > date_b)
+ );
+COMMENT ON TABLE absence IS 'Отсутствие';
+COMMENT ON COLUMN absence.ID IS 'Номер отсутствия';
+COMMENT ON COLUMN absence.employee_id IS 'Номер служащего';
+COMMENT ON COLUMN absence.name IS 'Наименование';
+COMMENT ON COLUMN absence.date_b IS 'Дата начала';
+COMMENT ON COLUMN absence.date_e IS 'Дата конца';
+ 
+ -----------Таблица veterinarian -- Ветеринар
+ CREATE TABLE veterinarian 
+ (
+ ID bigserial PRIMARY KEY REFERENCES employment(ID),
+ qualification bigserial NOT NULL,
+ area varchar(256) NOT NULL,
+ animal_spieces varchar(256) NOT NULL
+ );
+COMMENT ON TABLE veterinarian IS 'Ветеринар';
+COMMENT ON COLUMN veterinarian.ID IS 'Номер служащего';
+COMMENT ON COLUMN veterinarian.qualification IS 'Квалификация';
+COMMENT ON COLUMN veterinarian.area IS 'Направление';
+COMMENT ON COLUMN veterinarian.animal_spieces IS 'Вид животного';
+ 
+ -----------Таблица janitor -- Уборщик
+ CREATE TABLE janitor
+ (
+ ID bigserial PRIMARY KEY REFERENCES employment(ID),
+ hardworing boolean NOT NULL DEFAULT FALSE
+ );
+COMMENT ON TABLE janitor IS 'Уборщик';
+COMMENT ON COLUMN janitor.ID IS 'Номер служащего';
+COMMENT ON COLUMN janitor.hardworing IS 'Трудолюбивость';
+ 
+ -----------Таблица trainer -- Дрессировщик
+ CREATE TABLE trainer
+ (
+ ID bigserial PRIMARY KEY REFERENCES employment(ID),
+ qualification bigserial NOT NULL,
+ animal_spieces varchar(256) NOT NULL,
+ type_of_training varchar(256) NOT NULL
+ );
+COMMENT ON TABLE trainer IS 'Дрессировщик';
+COMMENT ON COLUMN trainer.ID IS 'Номер служащего';
+COMMENT ON COLUMN trainer.qualification IS 'Квалификация';
+COMMENT ON COLUMN trainer.animal_spieces IS 'Вид животного';
+COMMENT ON COLUMN trainer.type_of_training IS 'Тип дрессировки';
+ 
+ -----------Таблица repairman -- Строитель-ремонтник
+ CREATE TABLE repairman
+ (
+ ID bigserial PRIMARY KEY REFERENCES employment(ID),
+ grade bigserial NOT NULL,
+ area varchar(256) NOT NULL
+ );
+COMMENT ON TABLE repairman IS 'Строитель-ремонтник';
+COMMENT ON COLUMN repairman.ID IS 'Номер служащего';
+COMMENT ON COLUMN repairman.grade IS 'Разряд';
+COMMENT ON COLUMN repairman.area IS 'Направление';
+ 
+ -----------Таблица administrator -- Работник администрации
+ CREATE TABLE administrator 
+ (
+ ID bigserial PRIMARY KEY REFERENCES employment(ID),
+ area varchar(256) NOT NULL,
+ rating real NOT NULL
+ );
+COMMENT ON TABLE administrator IS 'Работник администрации';
+COMMENT ON COLUMN administrator.ID IS 'Номер служащего';
+COMMENT ON COLUMN administrator.area IS 'Направление';
+COMMENT ON COLUMN administrator.rating IS 'Рейтинг';
+ 
+ -----------Таблица zoo_engineer -- Зооинженер
+ CREATE TABLE zoo_engineer 
+ (
+ ID bigserial PRIMARY KEY REFERENCES employment(ID),
+ qualification varchar(256) NOT NULL,
+ specialization real NOT NULL
+ );
+COMMENT ON TABLE zoo_engineer IS 'Зооинженер';
+COMMENT ON COLUMN zoo_engineer.ID IS 'Номер служащего';
+COMMENT ON COLUMN zoo_engineer.qualification IS 'Квалификация';
+COMMENT ON COLUMN zoo_engineer.specialization IS 'Специализация';
